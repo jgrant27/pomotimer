@@ -13,12 +13,12 @@ use pbr::ProgressBar;
 use std::{thread, time};
 
 const ONE_SEC: time::Duration = time::Duration::from_millis(1000);
-const TASK_TIME: u64 = 5;
-const REST_TIME: u64 = 2;
-const LONG_REST_TIME: u64 = 3;
-const PB_WIDTH: usize= 50;
+const TASK_TIME: u64 = 25 * 60;
+const REST_TIME: u64 = 5 * 60;
+const LONG_REST_TIME: u64 = 15 * 60;
+const PB_WIDTH: usize= 80;
 
-
+const TITLE: &'static str = "POMODORO TIMER";
 const POMODORO: &'static str = r#"
                                    `.-:://///:-```
                     `.-://:.--...-+syyyyyyyys/:/+++---`
@@ -57,9 +57,9 @@ const POMODORO: &'static str = r#"
 "#;
 
 
-fn get_pb_task(width: usize) -> ProgressBar<std::io::Stdout> {
+fn get_progressbar(width: usize) -> ProgressBar<std::io::Stdout> {
     let mut pb = ProgressBar::new(TASK_TIME);
-    pb.format(" ▌▌░ ");
+    pb.format(" ░░▌ ");
     pb.show_speed = false;
     pb.show_counter = false;
     pb.show_percent = false;
@@ -69,7 +69,7 @@ fn get_pb_task(width: usize) -> ProgressBar<std::io::Stdout> {
 
 fn print_greet_pomo() {
     let (w, h) = terminal_size().unwrap();
-    let greet = "          PRESS 'ENTER' KEY TO START THE POMODORO TIMER";
+    let greet = format!(" {} - PRESS 'ENTER' KEY TO START", TITLE);
     println!("\n{}{}{}\n{}{}\n{}{}",
              termion::cursor::Hide,
              termion::clear::All,
@@ -79,10 +79,11 @@ fn print_greet_pomo() {
 }
 
 fn print_timer_pomo(msg: String) {
-    println!("\n{}{}\n{}{}\n{}{}",
+    println!("\n{}{}\n{} {}\n {}{}{}{}",
              termion::clear::All,
              termion::cursor::Goto(1, 1),
-             color::Fg(color::Green), msg,
+             color::Fg(color::Green), TITLE,
+             color::Fg(color::Reset), msg,
              color::Fg(color::Red), POMODORO);
 }
 
@@ -92,33 +93,33 @@ fn main() {
     print_greet_pomo();
 
     let stdin = stdin();
-    //let stdin = stdin.lock();
 
     for c in stdin.keys() {
         break;
     }
 
     for task in 1..5 {
-        print!("{}", "\x07".repeat(task));
-        print_timer_pomo(format!("          Task {}/4", task));
+        print_timer_pomo(format!("Task {}/4", task));
         print!("{}", color::Fg(color::Green));
-        let mut tpb = get_pb_task(50);
+        let mut tpb = get_progressbar(50);
         for _ in 1..TASK_TIME {
             tpb.inc();
             thread::sleep(ONE_SEC);
         }
-        print_timer_pomo(format!("          Rest {}/4", task));
+        print!("{}", "\x07".repeat(task));
+        print_timer_pomo(format!("Rest {}/4", task));
         print!("{}", color::Fg(color::Blue));
-        let mut rpb = get_pb_task(10);
+        let mut rpb = get_progressbar(10);
         for _ in 1..REST_TIME {
             rpb.inc();
             thread::sleep(ONE_SEC);
         }
+        print!("{}", "\x07".repeat(task));
     }
 
-    print_timer_pomo(format!("          Last rest"));
+    print_timer_pomo(format!("Long Rest"));
     println!("{}", color::Fg(color::Yellow));
-    let mut rpb = get_pb_task(60);
+    let mut rpb = get_progressbar(60);
     for _ in 1..LONG_REST_TIME {
         rpb.inc();
         thread::sleep(ONE_SEC);
