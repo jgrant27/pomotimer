@@ -3,6 +3,10 @@ name = "pomotool"
 version = "0.1.0"
 authors = ["jay"]
 
+[lib]
+path = "src/main.rs"
+
+
 [dependencies]
 termion = "*"
 pbr = "*"
